@@ -30,6 +30,10 @@
     th {
         text-decoration: underline;
     }
+    
+    .entry-buttons {
+        color: darkcyan;
+    }
 </style>
 
 <body>
@@ -38,11 +42,12 @@
         <h1>Mileage Tracker</h1>
     </header>
     <nav>
-        <button onclick="showAll()">Show All</button>
-        <button onclick="hideAll()">Hide All</button>
+
         <button onclick="saveData()">Save Data</button>
         <button onclick="loadData()">Load Data</button>
-        <button id='toggle-main-button' onclick='toggleMain(this.id)'>Show Table</button>
+        <button id='toggle-main-button' onclick='toggleMain(this.id)'>Table</button>
+        <button class="entry-buttons" onclick="showAll()">Show All Entries</button>
+        <button class="entry-buttons" onclick="hideAll()">Hide All Entries</button>
     </nav>
     <main id="main-mileage-log">
         <!-- <span><h3 id='heading1 '>Entry</h3></span>
@@ -220,7 +225,7 @@
             return arr;
         }
 
-        makeEntriesFromJSON(jsonEntries);
+
 
         function findJSONArrayIndex(index) {
             for (let i = 0; i < jsonEntries.length; i++) {
@@ -249,7 +254,7 @@
                 hideEntry(index);
             }
         }
-        hideAll();
+
 
         function saveData() {
             let monthNameArray = ["January", "February", "March", "April", "May", "June",
@@ -292,12 +297,8 @@
                     fileContents = fileLoadedEvent.target.result;
                     jsonEntries = JSON.parse(fileContents);
                     makeEntriesFromJSON(jsonEntries);
-                    if (document.getElementById("toggle-main-button").innerHTML === "Show Table") {
-                        toggleMain("toggle-main-button");
-                    } else {
-                        showTable();
-                    }
-                    hideAll();
+                    refreshAndGoToTable();
+
                 };
                 fileReader.readAsText(inputFile, "UTF-8");
             });
@@ -306,15 +307,25 @@
 
         function toggleMain(id) {
             let thisButton = document.getElementById(id);
-            if (thisButton.innerHTML === "Show Table") {
+            if (thisButton.innerHTML === "Table") {
                 document.getElementById('main-mileage-log').style.display = "none";
                 document.getElementById('main-table').style.display = "inherit";
-                thisButton.innerHTML = "Hide Table";
+                thisButton.innerHTML = "Entries";
+                let entryButtons = document.getElementsByClassName('entry-buttons');
+                for (button of entryButtons) {
+                    button.style.display = "none";
+                }
+                //document.getElementById('entry-buttons').style.display = "none";
                 showTable();
             } else {
                 document.getElementById('main-mileage-log').style.display = "inherit";
                 document.getElementById('main-table').style.display = "none";
-                thisButton.innerHTML = "Show Table";
+                //document.getElementById('entry-buttons').style.display = "inherit";
+                let entryButtons = document.getElementsByClassName('entry-buttons');
+                for (button of entryButtons) {
+                    button.style.display = "unset";
+                }
+                thisButton.innerHTML = "Table";
             }
         }
 
@@ -337,6 +348,29 @@
             tableString += "</table>";
             document.getElementById("main-table").innerHTML = tableString;
         }
+
+        function refreshAndGoToTable() {
+            if (document.getElementById("toggle-main-button").innerHTML === "Table") {
+                toggleMain("toggle-main-button");
+            } else {
+                showTable();
+            }
+            hideAll();
+        }
+
+        window.onbeforeunload = askConfirm;
+        let needsSave = true;
+
+        function askConfirm() {
+            if (needsSave === true) {
+                return "Did you remember to save your data?";
+            } else {
+                return;
+            }
+        }
+
+        makeEntriesFromJSON(jsonEntries);
+        refreshAndGoToTable();
     </script>
 </body>
 
