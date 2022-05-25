@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Document</title>
+</head>
+<style>
+    .entry {
+        display: flex;
+        flex-direction: column;
+        background-color: orange;
+        padding: 2px;
+    }
+    
+    #main-table {
+        display: none;
+    }
+    
+    body {
+        background-color: lightblue;
+    }
+    
+    main {
+        background-color: lightskyblue;
+    }
+    
+    th {
+        text-decoration: underline;
+    }
+</style>
+
+<body>
+
+    <header>
+        <h1>Mileage Tracker</h1>
+    </header>
+    <nav>
+        <button onclick="showAll()">Show All</button>
+        <button onclick="hideAll()">Hide All</button>
+        <button onclick="saveData()">Save Data</button>
+        <button onclick="loadData()">Load Data</button>
+        <button id='toggle-main-button' onclick='toggleMain(this.id)'>Show Table</button>
+    </nav>
+    <main id="main-mileage-log">
+        <!-- <span><h3 id='heading1 '>Entry</h3></span>
+        <button id='toggle_1 ' onclick='crud(this.id) '>Hide</button>
+        <div class='entry ' id='entry1 '>
+            <label for='date1 '>Date:</label>
+            <input type='date ' id='date1 ' value='2022-01-15 ' disabled>
+            <label for='start1 '>Start Mileage:</label>
+            <input type='number ' id='start1 ' value='888888 ' disabled>
+            <label for='end1 '>End Mileage:</label>
+            <input type='number ' id='end1 ' value='888888 ' disabled>
+            <label for='purpose1 '>Purpose:</label>
+            <input type='text ' id='purpose1 ' disabled>
+            <label for='notes1 '>Notes:</label>
+            <input type='text ' id='notes1 ' disabled>
+            <button id='edit_1 ' onclick='crud(this.id) '>Edit</button>
+            <button id='delete_1 ' onclick='crud(this.id) '>Delete</button>
+        </div>
+        <hr>
+        <button id='new_1 ' onclick="crud(this.id)">New</button> -->
+    </main>
+    <main id="main-table">
+        <h2>Table Results Here</h2>
+    </main>
+    <!-- <script src='javascript.js '></script> -->
+    <script>
+        function crud(id) {
+            let doThis = id.split("_")[0];
+            let index = id.split("_")[1];
+            let thisButton = document.getElementById(id);
+            if ((doThis === "edit") && (thisButton.innerHTML === "Edit")) {
+                document.getElementById('date' + index).disabled = false;
+                document.getElementById('start' + index).disabled = false;
+                document.getElementById('end' + index).disabled = false;
+                document.getElementById('purpose' + index).disabled = false;
+                document.getElementById('notes' + index).disabled = false;
+                thisButton.innerHTML = "Save";
+            } else if ((doThis === "edit") && (thisButton.innerHTML === "Save")) {
+                document.getElementById('date' + index).disabled = true;
+                document.getElementById('start' + index).disabled = true;
+                document.getElementById('end' + index).disabled = true;
+                document.getElementById('purpose' + index).disabled = true;
+                document.getElementById('notes' + index).disabled = true;
+                thisButton.innerHTML = "Edit";
+                updateEntry(index);
+                makeEntriesFromJSON(jsonEntries);
+            } else if (doThis === "delete") {
+                let jsonArrayIndex = findJSONArrayIndex(index);
+                jsonEntries.splice(jsonArrayIndex, 1);
+                console.log(jsonEntries);
+                makeEntriesFromJSON(jsonEntries);
+            } else if ((doThis === "toggle") && (thisButton.innerHTML === "Show")) {
+                showEntry(index);
+            } else if ((doThis === "toggle") && (thisButton.innerHTML === "Hide")) {
+                hideEntry(index);
+            } else if (doThis === "new") {
+                thisButton.remove();
+                addNewEntry(index);
+            }
+        }
+
+        function updateEntry(index) {
+            jsonArrayIndex = findJSONArrayIndex(index);
+            jsonEntries[jsonArrayIndex]["date"] = document.getElementById('date' + index).value;
+            jsonEntries[jsonArrayIndex]["start"] = document.getElementById('start' + index).value;
+            jsonEntries[jsonArrayIndex]["end"] = document.getElementById('end' + index).value;
+            jsonEntries[jsonArrayIndex]["purpose"] = document.getElementById('purpose' + index).value;
+            jsonEntries[jsonArrayIndex]["notes"] = document.getElementById('notes' + index).value;
+            makeEntriesFromJSON(jsonEntries);
+        }
+
+        function hideEntry(index) {
+            document.getElementById('entry' + index).style.display = "none";
+            document.getElementById('toggle_' + index).innerHTML = "Show";
+        }
+
+        function showEntry(index) {
+            document.getElementById('entry' + index).style.display = "flex";
+            document.getElementById('toggle_' + index).innerHTML = "Hide";
+        }
+
+
+        let jsonEntries = [
+            // {
+            //     "index": 1,
+            //     "date": "2022-01-15",
+            //     "start": 1,
+            //     "end": 2,
+            //     "purpose": "visit someone on xmas",
+            //     "notes": "out for the day"
+            // },
+            // {
+            //     "index": 2,
+            //     "date": "2022-01-14",
+            //     "start": 1,
+            //     "end": 2,
+            //     "purpose": "visit someone on easter",
+            //     "notes": "eating ham"
+            // },
+            // {
+            //     "index": 4,
+            //     "date": "2022-01-17",
+            //     "start": 1,
+            //     "end": 2,
+            //     "purpose": "visit someone during afternoon",
+            //     "notes": "napping"
+            // }
+        ]
+
+        function makeEntriesFromJSON(jsonEntries) {
+            jsonEntries = sortEntries(jsonEntries);
+            console.log(jsonEntries);
+            if (jsonEntries.length < 1) {
+                addNewEntry("0");
+            }
+            let mainString = "";
+            let index = "";
+            for (let i = 0; i < jsonEntries.length; i++) {
+                index = jsonEntries[i]["index"];
+                let date = jsonEntries[i]["date"];
+                let start = jsonEntries[i]["start"];
+                let end = jsonEntries[i]["end"];
+                let purpose = jsonEntries[i]["purpose"];
+                let notes = jsonEntries[i]["notes"];
+                console.log(jsonEntries[i]);
+                mainString += `<h3 id="heading${index}">Entry ${index} on Date: ${date}</h3>`;
+                mainString += `<button id='toggle_${index}' onclick='crud(this.id)'>Hide</button>`;
+                mainString += `<div class='entry' id='entry${index}'>`;
+                mainString += `<label for='date${index}'>Date:</label>`;
+                mainString += `<input type='date' id='date${index}' value='${date}' disabled>`;
+                mainString += `<label for='start${index}'>Start Mileage:</label>`;
+                mainString += `<input type='number' id='start${index}' value='${start}' disabled>`;
+                mainString += `<label for='end${index}'>End Mileage:</label>`;
+                mainString += `<input type='number' id='end${index}' value='${end}' disabled>`;
+                mainString += `<label for='purpose${index}'>Purpose:</label>`;
+                mainString += `<input type='text' id='purpose${index}' value='${purpose}' disabled>`;
+                mainString += `<label for='notes${index}'>Notes:</label>`;
+                mainString += `<input type='text' id='notes${index}' value='${notes}' disabled>`;
+                mainString += `<button id='edit_${index}' onclick='crud(this.id)'>Edit</button>`;
+                mainString += `<button id='delete_${index}' onclick='crud(this.id)'>Delete</button>`;
+                mainString += `</div>`;
+                mainString += `<hr>`;
+            }
+            mainString += `<button id='new_${index}' onclick='crud(this.id)'>New</button>`;
+            console.log(mainString);
+            document.getElementById("main-mileage-log").innerHTML = mainString;
+        };
+
+        function addNewEntry(index) {
+            let date = getDefaultDate();
+            let newIndex = parseInt(index) + 1;
+            let entry = {
+                "index": newIndex,
+                "date": date,
+                "start": 0,
+                "end": 0,
+                "purpose": "",
+                "notes": ""
+            }
+            jsonEntries.push(entry)
+            makeEntriesFromJSON(jsonEntries);
+            hideAll();
+            showEntry(newIndex.toString());
+        }
+
+        function getDefaultDate() {
+            let now = new Date();
+            let day = ("0" + now.getDate()).slice(-2);
+            let month = ("0" + (now.getMonth() + 1)).slice(-2);
+            let today = now.getFullYear() + "-" + (month) + "-" + (day);
+            return today;
+        }
+
+        function sortEntries(arr) {
+            return arr;
+        }
+
+        makeEntriesFromJSON(jsonEntries);
+
+        function findJSONArrayIndex(index) {
+            for (let i = 0; i < jsonEntries.length; i++) {
+                if (jsonEntries[i]["index"].toString() === index) {
+                    return i;
+                }
+            }
+        }
+
+        function showAll() {
+            let entries = document.getElementsByClassName('entry');
+            for (let entry of entries) {
+                console.log(entry.id);
+                index = entry.id.slice(5, );
+                console.log(index);
+                showEntry(index);
+            }
+        }
+
+        function hideAll() {
+            let entries = document.getElementsByClassName('entry');
+            for (let entry of entries) {
+                console.log(entry.id);
+                index = entry.id.slice(5, );
+                console.log(index);
+                hideEntry(index);
+            }
+        }
+        hideAll();
+
+        function saveData() {
+            let monthNameArray = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            basename = "mileageTracker";
+            date = new Date();
+            month = date.getMonth();
+            year = date.getFullYear();
+            day = date.getDate().toString();
+            day = "0" + day; //ensures leading 0
+            day = day.slice(-2) //ensures leading 0
+            basename = basename + day + monthNameArray[month] + year.toString()
+            saveStringToTextFile(JSON.stringify(jsonEntries), basename, ".json");
+        }
+
+        function saveStringToTextFile(str1, basename = "myfile", fileType = ".txt") {
+            let filename = basename + fileType;
+            let blobVersionOfText = new Blob([str1], {
+                type: "text/plain"
+            });
+            let urlToBlob = window.URL.createObjectURL(blobVersionOfText);
+            let downloadLink = document.createElement("a");
+            downloadLink.style.display = "none";
+            downloadLink.download = filename;
+            downloadLink.href = urlToBlob;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.parentElement.removeChild(downloadLink);
+        }
+
+        function loadData() {
+            let fileContents = "";
+            let inputTypeIsFile = document.createElement('input');
+            inputTypeIsFile.type = "file";
+            inputTypeIsFile.addEventListener("change", function() {
+                let inputFile = inputTypeIsFile.files[0];
+                let fileReader = new FileReader();
+                fileReader.onload = function(fileLoadedEvent) {
+                    fileContents = fileLoadedEvent.target.result;
+                    jsonEntries = JSON.parse(fileContents);
+                    makeEntriesFromJSON(jsonEntries);
+                    if (document.getElementById("toggle-main-button").innerHTML === "Show Table") {
+                        toggleMain("toggle-main-button");
+                    } else {
+                        showTable();
+                    }
+                    hideAll();
+                };
+                fileReader.readAsText(inputFile, "UTF-8");
+            });
+            inputTypeIsFile.click();
+        }
+
+        function toggleMain(id) {
+            let thisButton = document.getElementById(id);
+            if (thisButton.innerHTML === "Show Table") {
+                document.getElementById('main-mileage-log').style.display = "none";
+                document.getElementById('main-table').style.display = "inherit";
+                thisButton.innerHTML = "Hide Table";
+                showTable();
+            } else {
+                document.getElementById('main-mileage-log').style.display = "inherit";
+                document.getElementById('main-table').style.display = "none";
+                thisButton.innerHTML = "Show Table";
+            }
+        }
+
+        function showTable() {
+            let totalMileage = 0;
+            let tableString = "<table>";
+            tableString += "<tr><th></th><th>Date</th><th>Start</th><th>End</th><th>Distance</th><th>Purpose</th><th>Notes</th></tr>";
+            for (let i = 0; i < jsonEntries.length; i++) {
+                let index = jsonEntries[i]["index"];
+                let date = jsonEntries[i]["date"];
+                let start = jsonEntries[i]["start"];
+                let end = jsonEntries[i]["end"];
+                let distance = end - start;
+                totalMileage += distance;
+                let purpose = jsonEntries[i]["purpose"];
+                let notes = jsonEntries[i]["notes"];
+                tableString += `<tr><th>${index}</th><td>${date}</td><td>${start}</td><td>${end}</td><td>${distance}</td><td>${purpose}</td><td>${notes}</td></tr>`
+            }
+            tableString += `<tr><th></th><th></th><th></th><th>Total:</th><th>${totalMileage}</th><th></th><th></th><tr>`;
+            tableString += "</table>";
+            document.getElementById("main-table").innerHTML = tableString;
+        }
+    </script>
+</body>
+
+</html>
