@@ -120,8 +120,7 @@
 
     <main id="main-entry" class="flex-column">
         <h1>Mileage Tracker</h1>
-        <h3>Entry
-            <span id="table-row-index">1</span> Date: 01-01.2000</h3>
+        <h3> Entry: <span id="table-row-index">1</span> Date: <span id="entry-date-title"></span></h3>
         <nav><button onclick="saveEntry()">Save</button><button onclick="cancelEdit()">Cancel</button><button onclick="deleteEntry()">Delete</button></nav>
         <label for="entry-date">Date: </label><input type="date" id="entry-date">
         <label for="start">Start: </label><input type="number" id="start">
@@ -153,6 +152,7 @@
             document.getElementById("destination").value = row["destination"];
             document.getElementById("purpose").value = row["purpose"];
             document.getElementById("table-row-index").innerText = tableRowIndex.toString();
+            document.getElementById("entry-date-title").innerHTML = row["date"];
             console.log(entries);
         }
 
@@ -166,6 +166,7 @@
             document.getElementById("end").value = entries[entriesIndex]["end"];
             document.getElementById("destination").value = entries[entriesIndex]["destination"];
             document.getElementById("purpose").value = entries[entriesIndex]["purpose"];
+            document.getElementById("entry-date-title").innerHTML = entries[entriesIndex]["date"];
         }
 
         function saveEntry() {
