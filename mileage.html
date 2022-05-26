@@ -8,15 +8,17 @@
     <title>Document</title>
 </head>
 <style>
-    .entry {
-        display: flex;
-        flex-direction: column;
-        background-color: orange;
-        padding: 2px;
+    * {
+        box-sizing: border-box;
     }
     
-    #main-table {
-        display: none;
+    nav button {
+        /* margin: 1px; */
+        padding: 2px;
+        width: 60px;
+        height: 40px;
+        border-radius: 5px;
+        vertical-align: bottom;
     }
     
     body {
@@ -27,12 +29,85 @@
         background-color: lightskyblue;
     }
     
-    th {
-        text-decoration: underline;
+    main button {
+        height: 24px;
+        border-radius: 5px;
+        width: 80%;
+        margin-bottom: 10px;
+    }
+    
+    main input,
+    main button {
+        justify-content: center;
+    }
+    
+    main input {
+        border-radius: 3px;
+    }
+    
+    body,
+    main {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 320px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .entry {
+        display: flex;
+        flex-direction: column;
+        background-color: rgb(238, 177, 64);
+        padding: 2px;
+        margin-bottom: 10px;
+        border-radius: 10px;
     }
     
     .entry-buttons {
         color: darkcyan;
+    }
+    
+    main,
+    .entry {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 5px;
+    }
+    
+    hr {
+        border: 1px solid grey;
+        width: 80%;
+    }
+    
+    h2 {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    
+    table,
+    th,
+    td,
+    tr {
+        margin: 0;
+        padding: 0;
+    }
+    
+    td {
+        background-color: rgb(194, 228, 240);
+        text-align: center;
+    }
+    
+    #main-table {
+        display: none;
+    }
+    
+    h1 {
+        background-color: rgb(97, 187, 243);
+        border-radius: 10px;
+        padding: 8px;
     }
 </style>
 
@@ -93,12 +168,8 @@
                 document.getElementById('notes' + index).disabled = true;
                 thisButton.innerHTML = "Edit";
                 updateEntry(index);
-                makeEntriesFromJSON(jsonEntries);
             } else if (doThis === "delete") {
-                let jsonArrayIndex = findJSONArrayIndex(index);
-                jsonEntries.splice(jsonArrayIndex, 1);
-                console.log(jsonEntries);
-                makeEntriesFromJSON(jsonEntries);
+                deleteEntry(index);
             } else if ((doThis === "toggle") && (thisButton.innerHTML === "Show")) {
                 showEntry(index);
             } else if ((doThis === "toggle") && (thisButton.innerHTML === "Hide")) {
@@ -106,6 +177,15 @@
             } else if (doThis === "new") {
                 thisButton.remove();
                 addNewEntry(index);
+            }
+        }
+
+        function deleteEntry(index) {
+            if (confirm("Really Delete")) {
+                let jsonArrayIndex = findJSONArrayIndex(index);
+                jsonEntries.splice(jsonArrayIndex, 1);
+                console.log(jsonEntries);
+                makeEntriesFromJSON(jsonEntries);
             }
         }
 
@@ -117,6 +197,8 @@
             jsonEntries[jsonArrayIndex]["purpose"] = document.getElementById('purpose' + index).value;
             jsonEntries[jsonArrayIndex]["notes"] = document.getElementById('notes' + index).value;
             makeEntriesFromJSON(jsonEntries);
+            hideAll();
+            showEntry(index);
         }
 
         function hideEntry(index) {
@@ -211,6 +293,7 @@
             makeEntriesFromJSON(jsonEntries);
             hideAll();
             showEntry(newIndex.toString());
+            document.getElementById('edit_' + newIndex.toString()).click();
         }
 
         function getDefaultDate() {
@@ -297,7 +380,7 @@
                     fileContents = fileLoadedEvent.target.result;
                     jsonEntries = JSON.parse(fileContents);
                     makeEntriesFromJSON(jsonEntries);
-                    refreshAndGoToTable();
+                    refreshAndGoToEntries();
 
                 };
                 fileReader.readAsText(inputFile, "UTF-8");
@@ -349,11 +432,11 @@
             document.getElementById("main-table").innerHTML = tableString;
         }
 
-        function refreshAndGoToTable() {
-            if (document.getElementById("toggle-main-button").innerHTML === "Table") {
+        function refreshAndGoToEntries() {
+            if (document.getElementById("toggle-main-button").innerHTML === "Entries") {
                 toggleMain("toggle-main-button");
             } else {
-                showTable();
+                makeEntriesFromJSON(jsonEntries);
             }
             hideAll();
         }
@@ -370,7 +453,7 @@
         }
 
         makeEntriesFromJSON(jsonEntries);
-        refreshAndGoToTable();
+        refreshAndGoToEntries();
     </script>
 </body>
 
