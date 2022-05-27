@@ -98,7 +98,7 @@
 
     <main id="main-table" class="flex-column">
         <h1>Mileage Tracker</h1>
-        <nav><button onclick="load()">Load</button><button onclick="save()">Save</button><button onclick="newEntry()">New</button></nav>
+        <nav><button onclick="load()">Load</button><button onclick="save()">Save</button><button onclick="newEntry()">New</button><button onclick="saveAndCopyCSV();">CSV</button></nav>
         <label for="start-date">Start Date: </label><input type="date" id="start-date" onchange="populateTable()">
         <label for="end-date">End Date: </label><input type="date" id="end-date" onchange="populateTable()">
         <table id="mileage-table">
@@ -122,6 +122,8 @@
         let tableMain = document.getElementById("main-table");
         let entryMain = document.getElementById("main-entry");
         let entries = [];
+        let jsonCSVTable = [];
+        let csvTable = "";
 
         function newEntry() {
             tableMain.style.display = "none";
@@ -211,10 +213,12 @@
         }
 
         function populateTable() {
+
             destructiveSort(entries, "date"); //order by date
             let startDate = document.getElementById("start-date").value;
             let endDate = document.getElementById("end-date").value;
             document.getElementById("mileage-table").innerHTML = ""; //reset the table;
+            jsonCSVTable = [];
 
             let entryPresentDuringTimePeriod = false;
             for (let i = 0; i < entries.length; i++) {
@@ -223,9 +227,9 @@
                     entryPresentDuringTimePeriod = true;
                 }
             }
-
+            let totalMileage = 0;
             if ((entries.length > 0) && (entryPresentDuringTimePeriod)) { //only make a table if there is at least one entry
-                let totalMileage = 0;
+                totalMileage = 0;
                 let tableString = "<tr><th>Date</th><th>Start</th><th>End</th><th>Dist</th><th>Dest</th><th>Purpose</th></tr>";
                 for (let i = 0; i < entries.length; i++) {
                     // let index = entries[i]["index"];
@@ -238,11 +242,24 @@
                         let destination = entries[i]["destination"];
                         let purpose = entries[i]["purpose"];
                         tableString += `<tr onclick='editEntry(${i})'><td>${date}</td><td>${start}</td><td>${end}</td><td>${distance}</td><td>${destination}</td><td>${purpose}</td></tr>`
+                            //making csv for printing
+                        let csvRow = {
+                            "date": date,
+                            "start": start,
+                            "end": end,
+                            "distance": distance,
+                            "destination": destination,
+                            "purpose": purpose
+                        }
+                        jsonCSVTable.push(csvRow);
                     }
                 }
                 tableString += `<tr><th></th><th></th><th>Total:</th><th>${totalMileage}</th><th></th><th></th><tr>`;
                 document.getElementById("mileage-table").innerHTML = tableString;
             }
+
+            csvTable = makeCSVFromJSON(jsonCSVTable) + '"","","Total:","' + totalMileage + '","",""\n';
+            console.log(csvTable);
         }
 
         function load() {
@@ -356,6 +373,73 @@
             });
             return newArrayOfObjects;
         }
+
+        function makeCSVFromJSON(myJSON) {
+
+            //FIRST PASS// -- collect field names for csv table
+            let fieldNamesArray = [];
+            for (arrayEntry of myJSON) {
+                for (const field in arrayEntry) {
+                    if (!fieldNamesArray.includes(field)) {
+                        fieldNamesArray.push(field)
+                    };
+                }
+            }
+
+            //make header with field names
+            let csvString = "";
+            for (field of fieldNamesArray) {
+                field = field.replaceAll('"', '""'); //any interior " needs to be replaced with ""
+                csvString += "\"" + field + "\","; //surround each field with quotes
+            }
+            csvString = csvString.slice(0, -1) + "\n"; //remove last comma and add new line
+
+            //SECOND PASS -- fill in table using field names/keys
+            for (arrayEntry of myJSON) {
+                for (field of fieldNamesArray) {
+                    let csvEntry = arrayEntry[field];
+                    if (csvEntry === undefined) { //if undefined set to empty string ""
+                        csvEntry = "";
+                    } else if (typeof(csvEntry) != "string") { //if its not a string make it a string
+                        csvEntry = JSON.stringify(csvEntry);
+                    }
+                    csvEntry = csvEntry.replaceAll('"', '""');
+                    csvString += "\"" + csvEntry + "\"" + ","
+                }
+                csvString = csvString.slice(0, -1) + "\n";
+            }
+
+            return csvString;
+        }
+
+        function saveAndCopyCSV() {
+            //get table - already made when the page that this button on is called.
+            //copy csv to clipboard
+            if (copyStringToClipboard(csvTable)) {
+                //save file to csv
+                saveStringToTextFile(csvTable, "MileageLog" + getTodaysDate(), ".csv");
+            };
+
+
+        }
+
+        function copyStringToClipboard(str) {
+            //https://techoverflow.net/2018/03/30/copying-strings-to-the-clipboard-using-pure-javascript/
+            let el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style = {
+                position: 'absolute',
+                left: '-9999px'
+            };
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            return confirm("Copied to Clipboard.  Also save as file?");
+        }
+
+
 
         entryMain.style.display = "none";
         document.getElementById("start-date").value = getFirstDayOfThisMonthDate();
