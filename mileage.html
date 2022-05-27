@@ -85,6 +85,7 @@
             flex-direction: column;
             align-items: center;
         }
+        /* Not showing index, as changes and not user meaningful */
         
         #table-row-index {
             display: none;
@@ -214,7 +215,16 @@
             let startDate = document.getElementById("start-date").value;
             let endDate = document.getElementById("end-date").value;
             document.getElementById("mileage-table").innerHTML = ""; //reset the table;
-            if (entries.length > 0) { //only make a table if there is at least one entry
+
+            let entryPresentDuringTimePeriod = false;
+            for (let i = 0; i < entries.length; i++) {
+                let date = entries[i]["date"];
+                if ((date >= startDate) && (date <= endDate)) {
+                    entryPresentDuringTimePeriod = true;
+                }
+            }
+
+            if ((entries.length > 0) && (entryPresentDuringTimePeriod)) { //only make a table if there is at least one entry
                 let totalMileage = 0;
                 let tableString = "<tr><th>Date</th><th>Start</th><th>End</th><th>Dist</th><th>Dest</th><th>Purpose</th></tr>";
                 for (let i = 0; i < entries.length; i++) {
