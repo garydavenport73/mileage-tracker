@@ -71,6 +71,7 @@
         td {
             max-width: 50px;
             overflow-wrap: break-word;
+            text-align: center;
         }
         
         tr:hover {
@@ -84,6 +85,10 @@
             flex-direction: column;
             align-items: center;
         }
+        
+        #table-row-index {
+            display: none;
+        }
     </style>
 
 </head>
@@ -96,31 +101,13 @@
         <label for="start-date">Start Date: </label><input type="date" id="start-date" onchange="populateTable()">
         <label for="end-date">End Date: </label><input type="date" id="end-date" onchange="populateTable()">
         <table id="mileage-table">
-            <tr>
-                <th></th>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Total</th>
-                <th>Dest</th>
-                <th>Purpose</th>
-            </tr>
-            <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th>Total:</th>
-                <th>0</th>
-                <th></th>
-                <th></th>
-            </tr>
         </table>
         <hr>
     </main>
 
     <main id="main-entry" class="flex-column">
         <h1>Mileage Tracker</h1>
-        <h3> Entry: <span id="table-row-index">1</span> Date: <span id="entry-date-title"></span></h3>
+        <h3><span id="table-row-index">1</span><span id="entry-date-title"></span></h3>
         <nav><button onclick="saveEntry()">Save</button><button onclick="cancelEdit()">Cancel</button><button onclick="deleteEntry()">Delete</button></nav>
         <label for="entry-date">Date: </label><input type="date" id="entry-date">
         <label for="start">Start: </label><input type="number" id="start">
@@ -138,21 +125,14 @@
         function newEntry() {
             tableMain.style.display = "none";
             entryMain.style.display = "flex";
-            let row = {};
-            row["date"] = getTodaysDate();
-            row["start"] = 0;
-            row["end"] = 0;
-            row["destination"] = "";
-            row["purpose"] = "";
-            entries.push(row);
-            let tableRowIndex = entries.length;
-            document.getElementById("entry-date").value = row["date"];
-            document.getElementById("start").value = row["start"];
-            document.getElementById("end").value = row["end"];
-            document.getElementById("destination").value = row["destination"];
-            document.getElementById("purpose").value = row["purpose"];
+            let tableRowIndex = entries.length + 1;
+            document.getElementById("entry-date").value = getTodaysDate();;
+            document.getElementById("start").value = 0;
+            document.getElementById("end").value = 0;
+            document.getElementById("destination").value = "";
+            document.getElementById("purpose").value = "";
             document.getElementById("table-row-index").innerText = tableRowIndex.toString();
-            document.getElementById("entry-date-title").innerHTML = row["date"];
+            document.getElementById("entry-date-title").innerHTML = "New Entry";
             console.log(entries);
         }
 
@@ -166,12 +146,25 @@
             document.getElementById("end").value = entries[entriesIndex]["end"];
             document.getElementById("destination").value = entries[entriesIndex]["destination"];
             document.getElementById("purpose").value = entries[entriesIndex]["purpose"];
-            document.getElementById("entry-date-title").innerHTML = entries[entriesIndex]["date"];
+            document.getElementById("entry-date-title").innerHTML = "Entry on Date: " + entries[entriesIndex]["date"];
         }
 
         function saveEntry() {
             let tableRowIndex = parseInt(document.getElementById("table-row-index").innerText);
             let entriesIndex = tableRowIndex - 1;
+            console.log(entriesIndex);
+            console.log(entries.length);
+
+            if (entriesIndex === entries.length) { //this means the index is one beyond the length of the array
+                //ie a new slot in the array must be made to enter things into;  This occurs when a new entry
+                //form is filled out and the index is listed on the form, but they array entry has not been made
+                //yet so there is nowhere to assign the data to.
+                entries.push({}); //make an empty object in the array for new entry
+            } else {
+                //Here entriesIndex is one less then the entries.length, meaning the entries index corresponds to
+                //and existing array element.  This occurs when there is an edit of an existing entry 
+            }
+
             entries[entriesIndex]["date"] = document.getElementById("entry-date").value;
             entries[entriesIndex]["start"] = document.getElementById("start").value;
             entries[entriesIndex]["end"] = document.getElementById("end").value;
@@ -217,26 +210,29 @@
         }
 
         function populateTable() {
+            destructiveSort(entries, "date"); //order by date
             let startDate = document.getElementById("start-date").value;
             let endDate = document.getElementById("end-date").value;
-            let totalMileage = 0;
-            let tableString = "<tr><th></th><th>Date</th><th>Start</th><th>End</th><th>Distance</th><th>Dest</th><th>Purpose</th></tr>";
-            for (let i = 0; i < entries.length; i++) {
-                // let index = entries[i]["index"];
-                let date = entries[i]["date"];
-                if ((date >= startDate) && (date <= endDate)) {
-                    let start = entries[i]["start"];
-                    let end = entries[i]["end"];
-                    let distance = end - start;
-                    totalMileage += distance;
-                    let destination = entries[i]["destination"];
-                    let purpose = entries[i]["purpose"];
-                    tableString += `<tr onclick='editEntry(${i})'><th>${i+1}</th><td>${date}</td><td>${start}</td><td>${end}</td><td>${distance}</td><td>${destination}</td><td>${purpose}</td></tr>`
+            document.getElementById("mileage-table").innerHTML = ""; //reset the table;
+            if (entries.length > 0) { //only make a table if there is at least one entry
+                let totalMileage = 0;
+                let tableString = "<tr><th>Date</th><th>Start</th><th>End</th><th>Dist</th><th>Dest</th><th>Purpose</th></tr>";
+                for (let i = 0; i < entries.length; i++) {
+                    // let index = entries[i]["index"];
+                    let date = entries[i]["date"];
+                    if ((date >= startDate) && (date <= endDate)) { //only list entries within the given dats
+                        let start = entries[i]["start"];
+                        let end = entries[i]["end"];
+                        let distance = end - start;
+                        totalMileage += distance;
+                        let destination = entries[i]["destination"];
+                        let purpose = entries[i]["purpose"];
+                        tableString += `<tr onclick='editEntry(${i})'><td>${date}</td><td>${start}</td><td>${end}</td><td>${distance}</td><td>${destination}</td><td>${purpose}</td></tr>`
+                    }
                 }
+                tableString += `<tr><th></th><th></th><th>Total:</th><th>${totalMileage}</th><th></th><th></th><tr>`;
+                document.getElementById("mileage-table").innerHTML = tableString;
             }
-            tableString += `<tr><th></th><th></th><th></th><th>Total:</th><th>${totalMileage}</th><th></th><th></th><tr>`;
-            document.getElementById("mileage-table").innerHTML = tableString;
-
         }
 
         function load() {
@@ -323,6 +319,32 @@
             } else {
                 return;
             }
+        }
+
+        function destructiveSort(arrayOfObjects, field) {
+            arrayOfObjects.sort((a, b) => {
+                if (a[field] < b[field]) {
+                    return -1;
+                }
+                if (a[field] > b[field]) {
+                    return 1;
+                }
+                return 0;
+            });
+        }
+
+        function nonDestructiveSort(arrayOfObjects, field) {
+            let newArrayOfObjects = JSON.parse(JSON.stringify(arrayOfObjects));
+            newArrayOfObjects.sort((a, b) => {
+                if (a[field] < b[field]) {
+                    return -1;
+                }
+                if (a[field] > b[field]) {
+                    return 1;
+                }
+                return 0;
+            });
+            return newArrayOfObjects;
         }
 
         entryMain.style.display = "none";
