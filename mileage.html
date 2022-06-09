@@ -60,6 +60,9 @@
             border: 2px solid whitesmoke;
         }
         
+        #mileage-table{
+			width:80%;
+		}
         tr {
             background-color: lightblue;
         }
@@ -90,13 +93,28 @@
         #table-row-index {
             display: none;
         }
+        
+                /* ALREADY SET FOR PHONE*/
+        /* TABLET*/
+        @media only screen and (min-width : 600px) {
+			#main-mileage-table{
+				width:600px;
+			}
+        }
+        /*DESKTOP*/
+        @media only screen and (min-width: 900px){
+			#main-mileage-table{
+				width:900px;
+			}
+		}        
+        
     </style>
 
 </head>
 
 <body>
 
-    <main id="main-table" class="flex-column">
+    <main id="main-mileage-table" class="flex-column">
         <h1>Mileage Tracker</h1>
         <nav><button onclick="load()">Load</button><button onclick="save()">Save</button><button onclick="newEntry()">New</button><button onclick="saveAndCopyCSV();">CSV</button></nav>
         <label for="start-date">Start Date: </label><input type="date" id="start-date" onchange="populateTable()">
@@ -119,7 +137,7 @@
     </main>
 
     <script>
-        let tableMain = document.getElementById("main-table");
+        let tableMain = document.getElementById("main-mileage-table");
         let entryMain = document.getElementById("main-entry");
         let entries = [];
         let jsonCSVTable = [];
